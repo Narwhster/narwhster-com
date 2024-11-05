@@ -1,13 +1,20 @@
-import Canvas from './components/canvas/Canvas';
-import Hero from './components/hero/Hero';
-import Tooltip from './components/tooltip/Tooltip';
+import Canvas from '@/components/canvas/Canvas';
+import Hero from '@/components/hero/Hero';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/toaster"
+import { useToast } from "@/hooks/use-toast"
+import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 function App() {
   const [isMobile, setIsMobile] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const { toast } = useToast()
 
   useEffect(() => {
     const checkMobile = () => {
@@ -38,17 +45,12 @@ function App() {
   const handleContactClick = (e: React.MouseEvent) => {
     if (!isMobile) {
       e.preventDefault();
-      const target = e.currentTarget as HTMLElement;
-      const rect = target.getBoundingClientRect();
-      
-      setTooltipPosition({
-        x: rect.left + (rect.width / 2),
-        y: rect.bottom + 8
-      });
 
       navigator.clipboard.writeText('narwhster@gmail.com').then(() => {
-        setShowTooltip(true);
-        setTimeout(() => setShowTooltip(false), 2000);
+        toast({
+          description: 'Email copied!',
+          duration: 2000,
+        });
       }).catch((err) => {
         console.error('Failed to copy email:', err);
       });
@@ -56,25 +58,27 @@ function App() {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col">
-      <Tooltip 
-        message="Email copied!" 
-        isVisible={showTooltip} 
-        x={tooltipPosition.x - 50} 
-        y={tooltipPosition.y}
-      />
-      
+    <div className="w-full h-screen flex flex-col">      
       <nav className="absolute w-full flex items-center justify-around py-4 z-20">
         <div className="bg-background p-3 rounded-full flex gap-4 text-primary text-lg md:text-xl">
           <a href="https://blog.narwhster.com/" className="hover:scale-105 duration-200 transition-all">Blog</a>
           <a href="https://blog.narwhster.com/search?tags=project" className="hover:scale-105 duration-200 transition-all">Projects</a>
-          <a 
-            href="mailto:narwhster@gmail.com" 
-            onClick={handleContactClick}
-            className="hover:scale-105 duration-200 transition-all cursor-pointer"
-          >
-            Contact
-          </a>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a 
+                  href="mailto:narwhster@gmail.com" 
+                  onClick={handleContactClick}
+                  className="hover:scale-105 duration-200 transition-all cursor-pointer"
+                >
+                  Contact
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Click to copy email!</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="flex gap-4 p-2 rounded-full">
           <a href="https://github.com/narwhster" className="bg-accent-dark hover:bg-accent hover:scale-105 p-2 rounded-full duration-200 transition-all">
@@ -123,12 +127,14 @@ function App() {
                 </div>
                 <div className="flex flex-col items-center justify-center pointer-events-auto gap-3">
                   <motion.a href="https://blog.narwhster.com/"
-                    className="bg-secondary hover:bg-highlight hover:scale-105 text-primary text-lg px-6 py-2 rounded-full duration-200 transition-all"
                     initial={{ opacity: 0}}
                     animate={{ opacity: 1}}
                     transition={{ delay: 2.5, duration: 1 }}
                   >
-                    My Blog
+                    {/* secondary */}
+                    <Button variant="secondary">
+                      My Blog
+                    </Button>
                   </motion.a>
                 </div>
               </div>
@@ -136,6 +142,7 @@ function App() {
           </div>
         </div>
       </main>
+      <Toaster />
     </div>
   );
 }
